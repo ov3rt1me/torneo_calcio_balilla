@@ -61,123 +61,103 @@
     .footer { margin-top: 40px; font-size: 0.8rem; color: #666; }
 .played{background:#d4ffd4!important;}
 </style>
-
 <script>
-// AUTO CARICA CSV DA GITHUB PAGES
-async function caricaCSV(){
-    try{
-        const r = await fetch('result.csv?cache=' + Date.now());
-        if(!r.ok) return;
-        const t = await r.text();
-        processCSV(t);
-    }catch(e){ console.error(e); }
-}
-
-function processCSV(txt){
-    const rows = txt.trim().split(/
-?
-/);
-    const map = {};
-    rows.forEach((r,i)=>{
-        if(i===0 && r.toLowerCase().includes("squadra1")) return;
-        const c=r.split(";");
-        if(c.length<6) return;
-        map[c[0].trim()+"|"+c[1].trim()] = {
-            s1:c[0].trim(), s2:c[1].trim(),
-            gf:parseInt(c[2])||0, gs:parseInt(c[3])||0,
-            esito:c[4].trim(), txt:c[5].trim()
-        };
-    });
-    aggiornaCalendarioDaCSV(map);
-    aggiornaClassificheDaCSV(map);
-}
-
-function aggiornaCalendarioDaCSV(map){
-    const tab=document.querySelector("#calendario table"); if(!tab) return;
-    const head=tab.querySelector("tr");
-    if(head && !head.querySelector(".risCsv")){
-        const th=document.createElement("th"); th.className="risCsv"; th.textContent="Risultato (CSV)"; head.appendChild(th);
-    }
-    tab.querySelectorAll("tr").forEach((r,i)=>{
-        if(i===0) return;
-        const c=r.querySelectorAll("td"); if(c.length<5) return;
-        const key=c[3].textContent.trim()+"|"+c[4].textContent.trim();
-        let td=r.querySelector(".risCsvCell");
-        if(!td){ td=document.createElement("td"); td.className="risCsvCell"; r.appendChild(td); }
-
-        const d = map[key];
-        const giocata = d && (d.esito === "A" || d.esito === "B");
-
-        if(giocata){
-            td.textContent=d.txt;
-            r.classList.add("played");
+    function toggleSection(id) {
+        var el = document.getElementById(id);
+        if (!el) return;
+        if (el.style.display === "none") {
+            el.style.display = "block";
         } else {
-            td.textContent="";
-            r.classList.remove("played");
+            el.style.display = "none";
         }
-    });
-}
-
-function aggiornaClassificheDaCSV(map){
-    const cls={};
-    const init=t=>{ if(!cls[t]) cls[t]={punti:0,gf:0,gs:0}; };
-
-    Object.values(map).forEach(g=>{
-        init(g.s1); init(g.s2);
-        cls[g.s1].gf+=g.gf; cls[g.s1].gs+=g.gs;
-        cls[g.s2].gf+=g.gs; cls[g.s2].gs+=g.gf;
-        if(g.esito==="A") cls[g.s1].punti+=1;
-        if(g.esito==="B") cls[g.s2].punti+=1;
-    });
-
-    const gir={};
-    document.querySelectorAll("#calendario table tr").forEach((r,i)=>{
-        if(i===0) return;
-        const c=r.querySelectorAll("td"); if(c.length<5) return;
-        const g=c[0].textContent.trim(), s1=c[3].textContent.trim(), s2=c[4].textContent.trim();
-        if(!gir[g]) gir[g]=new Set();
-        gir[g].add(s1); gir[g].add(s2);
-    });
-
-    const A=document.getElementById("tabClassificaA");
-    const B=document.getElementById("tabClassificaB");
-    A.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
-    B.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
-
-    function fill(gName,tab){
-        if(!gir[gName]) return;
-        const squadre=[...gir[gName]];
-        squadre.sort((a,b)=>{
-            if(cls[b].punti!==cls[a].punti) return cls[b].punti - cls[a].punti;
-            const dA=cls[a].gf-cls[a].gs, dB=cls[b].gf-cls[b].gs;
-            if(dB!==dA) return dB-dA;
-            return cls[b].gf - cls[a].gf;
-        });
-        squadre.forEach(t=>{
-            const s=cls[t]||{punti:0,gf:0,gs:0};
-            const tr=document.createElement("tr");
-            tr.innerHTML=`<td>${t}</td><td>${s.punti}</td><td>${s.gf}</td><td>${s.gs}</td><td>${s.gf-s.gs}</td>`;
-            tab.appendChild(tr);
-        });
     }
-
-    fill("Girone A",A);
-    fill("Girone B",B);
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-    caricaCSV();
-    setInterval(caricaCSV,60000);
-});
 </script>
 
-
-
+<script>
+async function caricaCSV(){
+ try{
+  const r=await fetch('result.csv?c='+Date.now());
+  if(!r.ok)return;
+  const t=await r.text();
+  processCSV(t);
+ }catch(e){console.error(e);}
+}
+function processCSV(txt){
+ const rows=txt.trim().split(/\r?\n/);
+ const map={};
+ rows.forEach((r,i)=>{
+  if(i===0&&r.toLowerCase().includes("squadra1"))return;
+  const c=r.split(";"); if(c.length<6)return;
+  map[c[0].trim()+"|"+c[1].trim()]={s1:c[0].trim(),s2:c[1].trim(),gf:parseInt(c[2])||0,gs:parseInt(c[3])||0,esito:c[4].trim(),txt:c[5].trim()};
+ });
+ aggiornaCalendarioDaCSV(map);
+ aggiornaClassificheDaCSV(map);
+}
+function aggiornaCalendarioDaCSV(map){
+ const tab=document.querySelector("#calendario table"); if(!tab)return;
+ const head=tab.querySelector("tr");
+ if(head&&!head.querySelector(".risCsv")){
+  const th=document.createElement("th"); th.className="risCsv"; th.textContent="Risultato (CSV)"; head.appendChild(th);
+ }
+ tab.querySelectorAll("tr").forEach((r,i)=>{
+  if(i===0)return;
+  const c=r.querySelectorAll("td"); if(c.length<5)return;
+  const key=c[3].textContent.trim()+"|"+c[4].textContent.trim();
+  let td=r.querySelector(".risCsvCell");
+  if(!td){td=document.createElement("td");td.className="risCsvCell";r.appendChild(td);}
+  const d=map[key];
+  const giocata=d&&(d.esito==="A"||d.esito==="B");
+  if(giocata){td.textContent=d.txt;r.classList.add("played");}
+  else{td.textContent="";r.classList.remove("played");}
+ });
+}
+function aggiornaClassificheDaCSV(map){
+ const cls={}; const init=t=>{if(!cls[t])cls[t]={punti:0,gf:0,gs:0};};
+ Object.values(map).forEach(g=>{
+  init(g.s1);init(g.s2);
+  cls[g.s1].gf+=g.gf;cls[g.s1].gs+=g.gs;
+  cls[g.s2].gf+=g.gs;cls[g.s2].gs+=g.gf;
+  if(g.esito==="A")cls[g.s1].punti++;
+  if(g.esito==="B")cls[g.s2].punti++;
+ });
+ const gir={};
+ document.querySelectorAll("#calendario table tr").forEach((r,i)=>{
+  if(i===0)return;
+  const c=r.querySelectorAll("td"); if(c.length<5)return;
+  const g=c[0].textContent.trim(),s1=c[3].textContent.trim(),s2=c[4].textContent.trim();
+  if(!gir[g])gir[g]=new Set();
+  gir[g].add(s1);gir[g].add(s2);
+ });
+ const A=document.getElementById("tabClassificaA");
+ const B=document.getElementById("tabClassificaB");
+ A.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+ B.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+ function fill(g,tab){
+  if(!gir[g])return;
+  const sq=[...gir[g]];
+  sq.sort((a,b)=>{
+   if(cls[b].punti!==cls[a].punti)return cls[b].punti-cls[a].punti;
+   const dA=cls[a].gf-cls[a].gs,dB=cls[b].gf-cls[b].gs;
+   if(dB!==dA)return dB-dA;
+   return cls[b].gf-cls[a].gf;
+  });
+  sq.forEach(t=>{
+   const s=cls[t]||{punti:0,gf:0,gs:0};
+   const tr=document.createElement("tr");
+   tr.innerHTML=`<td>${t}</td><td>${s.punti}</td><td>${s.gf}</td><td>${s.gs}</td><td>${s.gf-s.gs}</td>`;
+   tab.appendChild(tr);
+  });
+ }
+ fill("Girone A",A);
+ fill("Girone B",B);
+}
+document.addEventListener("DOMContentLoaded",()=>{caricaCSV();setInterval(caricaCSV,60000);});
+</script>
 
 </head>
 <body>
 <h1>Torneo di Calcio Balilla</h1>
-<div class="buttons">
+<div class="buttons" style="display:none">
     <button onclick="toggleSection('gironi')">Mostra/Nascondi Gironi</button>
     <button onclick="toggleSection('calendario')">Mostra/Nascondi Calendario</button>
     <button onclick="toggleSection('fasi_finali')">Mostra/Nascondi Semifinali/Finale</button>
