@@ -61,246 +61,183 @@
     .footer { margin-top: 40px; font-size: 0.8rem; color: #666; }
 .played{background:#d4ffd4!important;}
 .top2{background:#cce7ff!important;}
-.top2{background:#cce7ff!important;}
 </style>
 
+
+
+
+
+
+
 <script>
+// Carica automaticamente result.csv da GitHub Pages
 async function caricaCSV(){
- try{
-  const r=await fetch('result.csv?c='+Date.now());
-  if(!r.ok) return;
-  const t=await r.text();
-  processCSV(t);
- }catch(e){ console.error(e); }
+  try{
+    const r = await fetch('result.csv?cache=' + Date.now());
+    if(!r.ok) return;
+    const txt = await r.text();
+    processCSV(txt);
+  }catch(e){
+    console.error(e);
+  }
 }
 
+// Parsing CSV: Squadra1;Squadra2;Gol1;Gol2;Esito;RisultatoText;Aggregato
 function processCSV(txt){
- const rows = txt.trim().split(/\r?\n/);
- const map = {};
- rows.forEach((r,i)=>{
-  if(i===0 && r.toLowerCase().includes("squadra1")) return;
-  const c = r.split(";");
-  if(c.length < 7) return;
-
-  map[c[0].trim()+"|"+c[1].trim()] = {
-    s1: c[0].trim(),
-    s2: c[1].trim(),
-    gf: parseInt(c[2])||0,
-    gs: parseInt(c[3])||0,
-    esito: c[4].trim(),
-    txt: c[5].trim(),
-    agg: c[6].trim()
-  };
- });
-
- aggiornaCalendarioDaCSV(map);
- aggiornaClassificheDaCSV(map);
+  const rows = txt.trim().split(/\r?\n/);
+  const map = {};
+  rows.forEach((r,i)=>{
+    if(!r) return;
+    if(i===0 && r.toLowerCase().includes("squadra1")) return; // header
+    const c = r.split(";");
+    if(c.length < 7) return;
+    const key = c[0].trim() + "|" + c[1].trim();
+    map[key] = {
+      s1: c[0].trim(),
+      s2: c[1].trim(),
+      gf: parseInt(c[2]) || 0,
+      gs: parseInt(c[3]) || 0,
+      esito: c[4].trim(),
+      txt: c[5].trim(),
+      agg: c[6].trim()
+    };
+  });
+  aggiornaCalendarioDaCSV(map);
+  aggiornaClassificheDaCSV(map);
 }
 
+// Aggiorna calendario: scrive risultato CSV e colora riga se giocata
 function aggiornaCalendarioDaCSV(map){
- const tab=document.querySelector("#calendario table");
- if(!tab) return;
+  const tab = document.querySelector("#calendario table");
+  if(!tab) return;
 
- const head=tab.querySelector("tr");
- if(head && !head.querySelector(".risCsv")){
-   const th=document.createElement("th");
-   th.className="risCsv";
-   th.textContent="Risultato (CSV)";
-   head.appendChild(th);
- }
+  const head = tab.querySelector("tr");
+  if(head && !head.querySelector(".risCsv")){
+    const th = document.createElement("th");
+    th.className = "risCsv";
+    th.textContent = "Risultato (CSV)";
+    head.appendChild(th);
+  }
 
- tab.querySelectorAll("tr").forEach((r,i)=>{
-   if(i===0) return;
-   const c=r.querySelectorAll("td");
-   if(c.length<5) return;
-   const key=c[3].textContent.trim()+"|"+c[4].textContent.trim();
+  tab.querySelectorAll("tr").forEach((row,i)=>{
+    if(i===0) return;
+    const cells = row.querySelectorAll("td");
+    if(cells.length < 5) return;
 
-   let td=r.querySelector(".risCsvCell");
-   if(!td){
-     td=document.createElement("td");
-     td.className="risCsvCell";
-     r.appendChild(td);
-   }
+    const s1 = cells[3].textContent.trim();
+    const s2 = cells[4].textContent.trim();
+    const key = s1 + "|" + s2;
 
-   const d = map[key];
-   const giocata = d && d.agg && d.agg.includes("-");
+    let td = row.querySelector(".risCsvCell");
+    if(!td){
+      td = document.createElement("td");
+      td.className = "risCsvCell";
+      row.appendChild(td);
+    }
 
-   if(giocata){
-     td.textContent=d.txt;
-     r.classList.add("played");
-   } else {
-     td.textContent="";
-     r.classList.remove("played");
-   }
- });
+    const d = map[key];
+    const giocata = d && d.agg && d.agg.includes("-");
+    if(giocata){
+      td.textContent = d.txt;
+      row.classList.add("played");
+    }else{
+      td.textContent = "";
+      row.classList.remove("played");
+    }
+  });
 }
 
+// Calcola le classifiche dei Gironi A e B
 function aggiornaClassificheDaCSV(map){
- const cls={};
- const init=t=>{ if(!cls[t]) cls[t]={punti:0,gf:0,gs:0}; };
+  const cls = {};
+  const init = t => { if(!cls[t]) cls[t] = { punti:0, gf:0, gs:0 }; };
 
- Object.values(map).forEach(g=>{
-   init(g.s1); init(g.s2);
+  Object.values(map).forEach(g=>{
+    init(g.s1);
+    init(g.s2);
 
-   cls[g.s1].gf+=g.gf; cls[g.s1].gs+=g.gs;
-   cls[g.s2].gf+=g.gs; cls[g.s2].gs+=g.gf;
+    // gol fatti/subiti
+    cls[g.s1].gf += g.gf;
+    cls[g.s1].gs += g.gs;
+    cls[g.s2].gf += g.gs;
+    cls[g.s2].gs += g.gf;
 
-   if(g.agg){
-     const parts=g.agg.split("-");
-     const a=parseInt(parts[0])||0;
-     const b=parseInt(parts[1])||0;
+    // punti in base all'Aggregato
+    if(g.agg){
+      const parts = g.agg.split("-");
+      const a = parseInt(parts[0]) || 0;
+      const b = parseInt(parts[1]) || 0;
 
-     if(a>b){
-        if(a==2 && b==0){ cls[g.s1].punti += 3; cls[g.s2].punti += 0; }
-        if(a==2 && b==1){ cls[g.s1].punti += 2; cls[g.s2].punti += 1; }
-     }
-     else if(b>a){
-        if(b==2 && a==0){ cls[g.s2].punti += 3; cls[g.s1].punti += 0; }
-        if(b==2 && a==1){ cls[g.s2].punti += 2; cls[g.s1].punti += 1; }
-     }
-   }
- });
+      if(a > b){
+        // squadra1 vince
+        if(a===2 && b===0){ cls[g.s1].punti += 3; }
+        else if(a===2 && b===1){ cls[g.s1].punti += 2; cls[g.s2].punti += 1; }
+      }else if(b > a){
+        // squadra2 vince
+        if(b===2 && a===0){ cls[g.s2].punti += 3; }
+        else if(b===2 && a===1){ cls[g.s2].punti += 2; cls[g.s1].punti += 1; }
+      }
+      // se a==b (es. 1-1) -> 0 punti a entrambe
+    }
+    // se g.agg vuoto -> 0 punti entrambe (caso A)
+  });
 
- const gir={};
- document.querySelectorAll("#calendario table tr").forEach((r,i)=>{
-   if(i===0) return;
-   const c=r.querySelectorAll("td");
-   if(c.length<5) return;
+  // Costruisci mappa gironi dal calendario
+  const gir = {};
+  document.querySelectorAll("#calendario table tr").forEach((row,i)=>{
+    if(i===0) return;
+    const cells = row.querySelectorAll("td");
+    if(cells.length < 5) return;
+    const gName = cells[0].textContent.trim();
+    const s1 = cells[3].textContent.trim();
+    const s2 = cells[4].textContent.trim();
+    if(!gir[gName]) gir[gName] = new Set();
+    gir[gName].add(s1);
+    gir[gName].add(s2);
+  });
 
-   const g=c[0].textContent.trim(),
-         s1=c[3].textContent.trim(),
-         s2=c[4].textContent.trim();
+  const tabA = document.getElementById("tabClassificaA");
+  const tabB = document.getElementById("tabClassificaB");
+  if(tabA) tabA.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+  if(tabB) tabB.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
 
-   if(!gir[g]) gir[g]=new Set();
-   gir[g].add(s1);
-   gir[g].add(s2);
- });
+  function fill(gName, tab){
+    if(!tab || !gir[gName]) return;
+    const squadre = [...gir[gName]];
+    // assicura init per tutte le squadre del girone
+    squadre.forEach(t=>init(t));
 
- const A=document.getElementById("tabClassificaA");
- const B=document.getElementById("tabClassificaB");
+    squadre.sort((a,b)=>{
+      if(cls[b].punti !== cls[a].punti) return cls[b].punti - cls[a].punti;
+      const dA = cls[a].gf - cls[a].gs;
+      const dB = cls[b].gf - cls[b].gs;
+      if(dB !== dA) return dB - dA;
+      return cls[b].gf - cls[a].gf;
+    });
 
- if(A) A.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
- if(B) B.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+    squadre.forEach((t,idx)=>{
+      const s = cls[t];
+      const tr = document.createElement("tr");
+      if(idx < 2) tr.classList.add("top2");
+      tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
+      tab.appendChild(tr);
+    });
+  }
 
- function fill(gName,tab){
-   if(!gir[gName]) return;
-
-   const sq=[...gir[gName]];
-   sq.sort((a,b)=>{
-     if(cls[b].punti !== cls[a].punti) return cls[b].punti - cls[a].punti;
-     const dA=cls[a].gf - cls[a].gs;
-     const dB=cls[b].gf - cls[b].gs;
-     if(dB!==dA) return dB - dA;
-     return cls[b].gf - cls[a].gf;
-   });
-
-   sq.forEach((t,idx)=>{
-     const s=cls[t]||{punti:0,gf:0,gs:0};
-     const tr=document.createElement("tr");
-
-     if(idx<2) tr.classList.add("top2");
-
-     tr.innerHTML='<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
-     tab.appendChild(tr);
-   });
- }
-
- fill("Girone A",A);
- fill("Girone B",B);
+  fill("Girone A", tabA);
+  fill("Girone B", tabB);
 }
 
-document.addEventListener("DOMContentLoaded",()=>{
- caricaCSV();
- setInterval(caricaCSV,60000);
+document.addEventListener("DOMContentLoaded", ()=>{
+  caricaCSV();
+  setInterval(caricaCSV, 60000);
 });
-</script>
-
-
-<script>
-async function caricaCSV(){
- try{
-  const r=await fetch('result.csv?c='+Date.now());
-  if(!r.ok)return;
-  const t=await r.text();
-  processCSV(t);
- }catch(e){console.error(e);}
-}
-function processCSV(txt){
- const rows=txt.trim().split(/\r?\n/);
- const map={};
- rows.forEach((r,i)=>{
-  if(i===0&&r.toLowerCase().includes("squadra1"))return;
-  const c=r.split(";"); if(c.length<6)return;
-  map[c[0].trim()+"|"+c[1].trim()]={s1:c[0].trim(),s2:c[1].trim(),gf:parseInt(c[2])||0,gs:parseInt(c[3])||0,esito:c[4].trim(),txt:c[5].trim()};
- });
- aggiornaCalendarioDaCSV(map);
- aggiornaClassificheDaCSV(map);
-}
-function aggiornaCalendarioDaCSV(map){
- const tab=document.querySelector("#calendario table"); if(!tab)return;
- const head=tab.querySelector("tr");
- if(head&&!head.querySelector(".risCsv")){
-  const th=document.createElement("th"); th.className="risCsv"; th.textContent="Risultato (CSV)"; head.appendChild(th);
- }
- tab.querySelectorAll("tr").forEach((r,i)=>{
-  if(i===0)return;
-  const c=r.querySelectorAll("td"); if(c.length<5)return;
-  const key=c[3].textContent.trim()+"|"+c[4].textContent.trim();
-  let td=r.querySelector(".risCsvCell");
-  if(!td){td=document.createElement("td");td.className="risCsvCell";r.appendChild(td);}
-  const d=map[key];
-  const giocata=d&&(d.esito==="A"||d.esito==="B");
-  if(giocata){td.textContent=d.txt;r.classList.add("played");}
-  else{td.textContent="";r.classList.remove("played");}
- });
-}
-function aggiornaClassificheDaCSV(map){
- const cls={}; const init=t=>{if(!cls[t])cls[t]={punti:0,gf:0,gs:0};};
- Object.values(map).forEach(g=>{
-  init(g.s1);init(g.s2);
-  cls[g.s1].gf+=g.gf;cls[g.s1].gs+=g.gs;
-  cls[g.s2].gf+=g.gs;cls[g.s2].gs+=g.gf;
-  if(g.esito==="A")cls[g.s1].punti++;
-  if(g.esito==="B")cls[g.s2].punti++;
- });
- const gir={};
- document.querySelectorAll("#calendario table tr").forEach((r,i)=>{
-  if(i===0)return;
-  const c=r.querySelectorAll("td"); if(c.length<5)return;
-  const g=c[0].textContent.trim(),s1=c[3].textContent.trim(),s2=c[4].textContent.trim();
-  if(!gir[g])gir[g]=new Set();
-  gir[g].add(s1);gir[g].add(s2);
- });
- const A=document.getElementById("tabClassificaA");
- const B=document.getElementById("tabClassificaB");
- A.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
- B.innerHTML='<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
- function fill(g,tab){
-  if(!gir[g])return;
-  const sq=[...gir[g]];
-  sq.sort((a,b)=>{
-   if(cls[b].punti!==cls[a].punti)return cls[b].punti-cls[a].punti;
-   const dA=cls[a].gf-cls[a].gs,dB=cls[b].gf-cls[b].gs;
-   if(dB!==dA)return dB-dA;
-   return cls[b].gf-cls[a].gf;
-  });
-  sq.forEach(t=>{
-   const s=cls[t]||{punti:0,gf:0,gs:0};
-   const tr=document.createElement("tr");
-   tr.innerHTML=`<td>${t}</td><td>${s.punti}</td><td>${s.gf}</td><td>${s.gs}</td><td>${s.gf-s.gs}</td>`;
-   tab.appendChild(tr);
-  });
- }
- fill("Girone A",A);
- fill("Girone B",B);
-}
-document.addEventListener("DOMContentLoaded",()=>{caricaCSV();setInterval(caricaCSV,60000);});
 </script>
 
 </head>
 <body>
 <h1>Torneo di Calcio Balilla</h1>
-<div class="buttons" style="display:none">
+<div class="buttons">
     <button onclick="toggleSection('gironi')">Mostra/Nascondi Gironi</button>
     <button onclick="toggleSection('calendario')">Mostra/Nascondi Calendario</button>
     <button onclick="toggleSection('fasi_finali')">Mostra/Nascondi Semifinali/Finale</button>
@@ -325,15 +262,14 @@ document.addEventListener("DOMContentLoaded",()=>{caricaCSV();setInterval(carica
             <th>Squadra 2</th>
         </tr><tr><td>Girone A</td><td>2025-11-24</td><td>13:00-13:30</td><td>Torino</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-11-24</td><td>13:30-14:00</td><td>Sassuolo</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-11-25</td><td>13:00-13:30</td><td>Salernitana</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-11-25</td><td>13:30-14:00</td><td>Piacenza</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-11-26</td><td>13:00-13:30</td><td>Salernitana</td><td>Ascoli</td></tr><tr><td>Girone A</td><td>2025-11-26</td><td>13:30-14:00</td><td>Salernitana</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-11-27</td><td>13:00-13:30</td><td>Piacenza</td><td>Sassuolo</td></tr><tr><td>Girone A</td><td>2025-11-27</td><td>13:30-14:00</td><td>Cittadella</td><td>Torino</td></tr><tr><td>Girone A</td><td>2025-11-28</td><td>13:00-13:30</td><td>Sassuolo</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-11-28</td><td>13:30-14:00</td><td>Piacenza</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-12-01</td><td>13:00-13:30</td><td>Sassuolo</td><td>Cittadella</td></tr><tr><td>Girone A</td><td>2025-12-01</td><td>13:30-14:00</td><td>Piacenza</td><td>Ascoli</td></tr><tr><td>Girone A</td><td>2025-12-02</td><td>13:00-13:30</td><td>Sassuolo</td><td>Salernitana</td></tr><tr><td>Girone A</td><td>2025-12-02</td><td>13:30-14:00</td><td>Cittadella</td><td>Salernitana</td></tr><tr><td>Girone A</td><td>2025-12-03</td><td>13:00-13:30</td><td>Albinoleffe</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-12-03</td><td>13:30-14:00</td><td>Sassuolo</td><td>Ascoli</td></tr><tr><td>Girone A</td><td>2025-12-04</td><td>13:00-13:30</td><td>Cittadella</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-12-04</td><td>13:30-14:00</td><td>Cittadella</td><td>Ascoli</td></tr><tr><td>Girone A</td><td>2025-12-05</td><td>13:00-13:30</td><td>Piacenza</td><td>Salernitana</td></tr><tr><td>Girone A</td><td>2025-12-05</td><td>13:30-14:00</td><td>Sassuolo</td><td>Torino</td></tr><tr><td>Girone A</td><td>2025-12-08</td><td>13:00-13:30</td><td>Torino</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-12-08</td><td>13:30-14:00</td><td>Ascoli</td><td>Torino</td></tr><tr><td>Girone A</td><td>2025-12-09</td><td>13:00-13:30</td><td>Piacenza</td><td>Torino</td></tr><tr><td>Girone A</td><td>2025-12-09</td><td>13:30-14:00</td><td>Piacenza</td><td>Cittadella</td></tr><tr><td>Girone A</td><td>2025-12-10</td><td>13:00-13:30</td><td>Ascoli</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-12-10</td><td>13:30-14:00</td><td>Ascoli</td><td>Albinoleffe</td></tr><tr><td>Girone A</td><td>2025-12-11</td><td>13:00-13:30</td><td>Cittadella</td><td>Mantova</td></tr><tr><td>Girone A</td><td>2025-12-11</td><td>13:30-14:00</td><td>Salernitana</td><td>Torino</td></tr><tr><td>Girone B</td><td>2025-12-12</td><td>13:00-13:30</td><td>Modena</td><td>Frosinone</td></tr><tr><td>Girone B</td><td>2025-12-12</td><td>13:30-14:00</td><td>Padova</td><td>Frosinone</td></tr><tr><td>Girone B</td><td>2025-12-15</td><td>13:00-13:30</td><td>Modena</td><td>Crotone</td></tr><tr><td>Girone B</td><td>2025-12-15</td><td>13:30-14:00</td><td>Ancona</td><td>Frosinone</td></tr><tr><td>Girone B</td><td>2025-12-16</td><td>13:00-13:30</td><td>Cesena </td><td>Frosinone</td></tr><tr><td>Girone B</td><td>2025-12-16</td><td>13:30-14:00</td><td>Padova</td><td>Crotone</td></tr><tr><td>Girone B</td><td>2025-12-17</td><td>13:00-13:30</td><td>Padova</td><td>Cesena </td></tr><tr><td>Girone B</td><td>2025-12-17</td><td>13:30-14:00</td><td>Ancona</td><td>Cesena </td></tr><tr><td>Girone B</td><td>2025-12-18</td><td>13:00-13:30</td><td>Padova</td><td>Ancona</td></tr><tr><td>Girone B</td><td>2025-12-18</td><td>13:30-14:00</td><td>Crotone</td><td>Cesena </td></tr><tr><td>Girone B</td><td>2025-12-19</td><td>13:00-13:30</td><td>Brescia</td><td>Frosinone</td></tr><tr><td>Girone B</td><td>2025-12-19</td><td>13:30-14:00</td><td>Brescia</td><td>Ancona</td></tr><tr><td>Girone B</td><td>2025-12-22</td><td>13:00-13:30</td><td>Brescia</td><td>Crotone</td></tr><tr><td>Girone B</td><td>2025-12-22</td><td>13:30-14:00</td><td>Ancona</td><td>Modena</td></tr>    </table>
 </div>
-
 <div id="regolamento" class="section">
-<h2>Regolamento</h2>
-<ul>
-<li>Punteggi assegnati: Vittoria schiaccciante (2-0) vengono assegnati 3 punti, Vittoria (2-1) vengono assegnati 2 punti. Sconfitta (1-2) viene assegnato 1 punto. Sconfitta schiacciante (0-2) nessun punto assegnato</li>
-<li>Non è permesso il gancio da regolamento. </li>
-<li>Non sono permesse le "pirlate"</li>
-<li>Il calendario è un'indicazione di massima. Dovete organizzarvi tra di voi e inviare i risultati all'organizzazione</li>
-</ul>
+    <h2>Regolamento</h2>
+    <ul>
+        <li>Punto 1 del regolamento...</li>
+        <li>Punto 2 del regolamento...</li>
+        <li>Punto 3 del regolamento...</li>
+        <li>Punto 4 del regolamento...</li>
+    </ul>
 </div>
 
 <div id="classificaA" class="section"><h2>Classifica Girone A</h2>
@@ -349,7 +285,7 @@ document.addEventListener("DOMContentLoaded",()=>{caricaCSV();setInterval(carica
 
     <h3>Semifinali</h3>
     <table>
-        <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Semifinale 1</td><td>Prima Girone A</td><td>Seconda Girone B</td></tr><tr><td>Semifinale 2</td><td>Prima Girone B</td><td>Seconda Girone A</td></tr>    </table>
+        <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Semifinale 1</td><td>1&#194;&#176; Girone A</td><td>2&#194;&#176; Girone B</td></tr><tr><td>Semifinale 2</td><td>1&#194;&#176; Girone B</td><td>2&#194;&#176; Girone A</td></tr>    </table>
 
     <h3>Finale</h3>
     <table>
