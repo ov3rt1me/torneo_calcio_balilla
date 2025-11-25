@@ -237,14 +237,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
 </head>
 <body>
 <h1>Torneo di Calcio Balilla</h1>
-<div class="buttons">
-    <button onclick="toggleSection('gironi')">Mostra/Nascondi Gironi</button>
-    <button onclick="toggleSection('calendario')">Mostra/Nascondi Calendario</button>
-    <button onclick="toggleSection('fasi_finali')">Mostra/Nascondi Semifinali/Finale</button>
-    <a href="data:text/csv;base64,R2lyb25lO0RhdGE7T3JhcmlvO1NxdWFkcmExO1NxdWFkcmEyCkdpcm9uZSBBOzIwMjUtMTEtMjQ7MTM6MDAtMTM6MzA7VG9yaW5vO0FsYmlub2xlZmZlCkdpcm9uZSBBOzIwMjUtMTEtMjQ7MTM6MzAtMTQ6MDA7U2Fzc3VvbG87QWxiaW5vbGVmZmUKR2lyb25lIEE7MjAyNS0xMS0yNTsxMzowMC0xMzozMDtTYWxlcm5pdGFuYTtBbGJpbm9sZWZmZQpHaXJvbmUgQTsyMDI1LTExLTI1OzEzOjMwLTE0OjAwO1BpYWNlbnphO01hbnRvdmEKR2lyb25lIEE7MjAyNS0xMS0yNjsxMzowMC0xMzozMDtTYWxlcm5pdGFuYTtBc2NvbGkKR2lyb25lIEE7MjAyNS0xMS0yNjsxMzozMC0xNDowMDtTYWxlcm5pdGFuYTtNYW50b3ZhCkdpcm9uZSBBOzIwMjUtMTEtMjc7MTM6MDAtMTM6MzA7UGlhY2VuemE7U2Fzc3VvbG8KR2lyb25lIEE7MjAyNS0xMS0yNzsxMzozMC0xNDowMDtDaXR0YWRlbGxhO1RvcmlubwpHaXJvbmUgQTsyMDI1LTExLTI4OzEzOjAwLTEzOjMwO1Nhc3N1b2xvO01hbnRvdmEKR2lyb25lIEE7MjAyNS0xMS0yODsxMzozMC0xNDowMDtQaWFjZW56YTtBbGJpbm9sZWZmZQpHaXJvbmUgQTsyMDI1LTEyLTAxOzEzOjAwLTEzOjMwO1Nhc3N1b2xvO0NpdHRhZGVsbGEKR2lyb25lIEE7MjAyNS0xMi0wMTsxMzozMC0xNDowMDtQaWFjZW56YTtBc2NvbGkKR2lyb25lIEE7MjAyNS0xMi0wMjsxMzowMC0xMzozMDtTYXNzdW9sbztTYWxlcm5pdGFuYQpHaXJvbmUgQTsyMDI1LTEyLTAyOzEzOjMwLTE0OjAwO0NpdHRhZGVsbGE7U2FsZXJuaXRhbmEKR2lyb25lIEE7MjAyNS0xMi0wMzsxMzowMC0xMzozMDtBbGJpbm9sZWZmZTtNYW50b3ZhCkdpcm9uZSBBOzIwMjUtMTItMDM7MTM6MzAtMTQ6MDA7U2Fzc3VvbG87QXNjb2xpCkdpcm9uZSBBOzIwMjUtMTItMDQ7MTM6MDAtMTM6MzA7Q2l0dGFkZWxsYTtBbGJpbm9sZWZmZQpHaXJvbmUgQTsyMDI1LTEyLTA0OzEzOjMwLTE0OjAwO0NpdHRhZGVsbGE7QXNjb2xpCkdpcm9uZSBBOzIwMjUtMTItMDU7MTM6MDAtMTM6MzA7UGlhY2VuemE7U2FsZXJuaXRhbmEKR2lyb25lIEE7MjAyNS0xMi0wNTsxMzozMC0xNDowMDtTYXNzdW9sbztUb3Jpbm8KR2lyb25lIEE7MjAyNS0xMi0wODsxMzowMC0xMzozMDtUb3Jpbm87TWFudG92YQpHaXJvbmUgQTsyMDI1LTEyLTA4OzEzOjMwLTE0OjAwO0FzY29saTtUb3Jpbm8KR2lyb25lIEE7MjAyNS0xMi0wOTsxMzowMC0xMzozMDtQaWFjZW56YTtUb3Jpbm8KR2lyb25lIEE7MjAyNS0xMi0wOTsxMzozMC0xNDowMDtQaWFjZW56YTtDaXR0YWRlbGxhCkdpcm9uZSBBOzIwMjUtMTItMTA7MTM6MDAtMTM6MzA7QXNjb2xpO01hbnRvdmEKR2lyb25lIEE7MjAyNS0xMi0xMDsxMzozMC0xNDowMDtBc2NvbGk7QWxiaW5vbGVmZmUKR2lyb25lIEE7MjAyNS0xMi0xMTsxMzowMC0xMzozMDtDaXR0YWRlbGxhO01hbnRvdmEKR2lyb25lIEE7MjAyNS0xMi0xMTsxMzozMC0xNDowMDtTYWxlcm5pdGFuYTtUb3Jpbm8KR2lyb25lIEI7MjAyNS0xMi0xMjsxMzowMC0xMzozMDtNb2RlbmE7RnJvc2lub25lCkdpcm9uZSBCOzIwMjUtMTItMTI7MTM6MzAtMTQ6MDA7UGFkb3ZhO0Zyb3Npbm9uZQpHaXJvbmUgQjsyMDI1LTEyLTE1OzEzOjAwLTEzOjMwO01vZGVuYTtDcm90b25lCkdpcm9uZSBCOzIwMjUtMTItMTU7MTM6MzAtMTQ6MDA7QW5jb25hO0Zyb3Npbm9uZQpHaXJvbmUgQjsyMDI1LTEyLTE2OzEzOjAwLTEzOjMwO0Nlc2VuYSA7RnJvc2lub25lCkdpcm9uZSBCOzIwMjUtMTItMTY7MTM6MzAtMTQ6MDA7UGFkb3ZhO0Nyb3RvbmUKR2lyb25lIEI7MjAyNS0xMi0xNzsxMzowMC0xMzozMDtQYWRvdmE7Q2VzZW5hIApHaXJvbmUgQjsyMDI1LTEyLTE3OzEzOjMwLTE0OjAwO0FuY29uYTtDZXNlbmEgCkdpcm9uZSBCOzIwMjUtMTItMTg7MTM6MDAtMTM6MzA7UGFkb3ZhO0FuY29uYQpHaXJvbmUgQjsyMDI1LTEyLTE4OzEzOjMwLTE0OjAwO0Nyb3RvbmU7Q2VzZW5hIApHaXJvbmUgQjsyMDI1LTEyLTE5OzEzOjAwLTEzOjMwO0JyZXNjaWE7RnJvc2lub25lCkdpcm9uZSBCOzIwMjUtMTItMTk7MTM6MzAtMTQ6MDA7QnJlc2NpYTtBbmNvbmEKR2lyb25lIEI7MjAyNS0xMi0yMjsxMzowMC0xMzozMDtCcmVzY2lhO0Nyb3RvbmUKR2lyb25lIEI7MjAyNS0xMi0yMjsxMzozMC0xNDowMDtBbmNvbmE7TW9kZW5h" download="calendario_torneo.csv">
-        <button>Scarica Calendario (CSV)</button>
-    </a>
-</div>
 
 <div id="gironi" class="section">
     <h2>Gironi</h2><h3>Girone A (8 squadre)</h3>
@@ -265,10 +257,10 @@ document.addEventListener("DOMContentLoaded", ()=>{
 <div id="regolamento" class="section">
     <h2>Regolamento</h2>
     <ul>
-        <li>Punto 1 del regolamento...</li>
-        <li>Punto 2 del regolamento...</li>
-        <li>Punto 3 del regolamento...</li>
-        <li>Punto 4 del regolamento...</li>
+        <li>Punteggi: 3 punti vittoria schiacciante (2-0); 2 punti vittoria (2-1); 1 punto sconfitta (1-2); 0 punti sconfitta schiacciante (0-2)</li>
+        <li>No alle cosiddette "pirlate"</li>
+        <li>Ganci non ammessi</li>
+        <li>Organizzatevi le partite. Il calendario è puramente indicativo. La fase a gironi deve concludersi il 22 dicembre 2025</li>
     </ul>
 </div>
 
@@ -292,7 +284,6 @@ document.addEventListener("DOMContentLoaded", ()=>{
         <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Finale</td><td>Vincente Semifinale 1</td><td>Vincente Semifinale 2</td></tr></table></div>
 
 <div class="footer">
-    Generato automaticamente dallo script PowerShell - Torneo Calcio Balilla (loghi da cartella 'loghi').
 </div>
 
 </body>
