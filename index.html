@@ -1,103 +1,175 @@
 <!DOCTYPE html>
-
 <html lang="it">
 <head>
 <meta charset="utf-8"/>
 <title>Torneo Calcio Balilla</title>
 <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f3f3f3; color: #222; }
-    h1, h2, h3 { color: #333; }
-    .buttons { margin-bottom: 20px; }
-    button {
-        margin-right: 10px; margin-bottom: 5px;
-        padding: 8px 14px; border-radius: 6px;
-        border: 1px solid #888; background: #ffffff;
-        cursor: pointer; font-weight: bold;
+    /* === LAYOUT GENERALE MODERNO === */
+    body {
+        font-family: 'Segoe UI', Roboto, Arial, sans-serif;
+        margin: 0;
+        padding: 24px;
+        background: radial-gradient(circle at top, #ffffff 0, #f2f4f8 40%, #e3e7f0 100%);
+        color: #222;
     }
-    button:hover { background: #e6e6e6; }
+    h1 {
+        text-align: center;
+        font-size: 32px;
+        margin-bottom: 10px;
+    }
+    h2 {
+        font-size: 24px;
+        margin-top: 30px;
+        margin-bottom: 10px;
+    }
+    h3 {
+        font-size: 18px;
+        margin-top: 20px;
+        margin-bottom: 10px;
+    }
+    .section {
+        margin-top: 30px;
+    }
+    .footer {
+        margin-top: 40px;
+        font-size: 0.8rem;
+        color: #666;
+        text-align: center;
+    }
 
+    /* === CARDS SQUADRE - DESIGN MODERNO === */
     .girone-grid {
-        display: flex; flex-wrap: wrap; gap: 12px;
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+        gap: 18px;
         margin-bottom: 20px;
     }
     .team-card {
         background: #ffffff;
-        border-radius: 10px;
-        padding: 10px;
-        display: flex;
-        align-items: center;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        min-width: 260px;
+        border-radius: 16px;
+        padding: 14px 16px 16px 16px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.12);
+        display: grid;
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        grid-template-areas:
+            "logo info"
+            "accordion accordion";
+        column-gap: 12px;
+        row-gap: 10px;
     }
     .team-card img {
-        width: 50px; height: 50px; margin-right: 10px;
+        grid-area: logo;
+        width: 56px;
+        height: 56px;
         border-radius: 50%;
         object-fit: contain;
-        background: #fff;
+        background: #ffffff;
+        border: 1px solid #e2e8f0;
+    }
+    .team-card > div:not(.accordion) {
+        grid-area: info;
     }
     .team-name {
-        font-weight: bold; margin-bottom: 4px;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 4px;
     }
     .team-players {
-        font-size: 0.85rem; color: #444;
+        font-size: 13px;
+        color: #4b5563;
+        line-height: 1.35;
     }
 
+    /* === TABELLE MODERNE (CALENDARIO / CLASSIFICHE) === */
     table {
         border-collapse: collapse;
         width: 100%;
         margin-bottom: 25px;
         background: #ffffff;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        border-radius: 14px;
+        overflow: hidden;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
     }
     th, td {
-        border: 1px solid #ccc;
-        padding: 6px 8px;
+        padding: 8px 10px;
         text-align: center;
-        font-size: 0.9rem;
+        font-size: 14px;
+        border-bottom: 1px solid #e5e7eb;
     }
     th {
-        background: #ddd;
-    }
-    .section { margin-top: 30px; }
-    .footer { margin-top: 40px; font-size: 0.8rem; color: #666; }
-    .played{background:#d4ffd4!important;}
-    .top2{background:#cce7ff!important;}
-
-    /* === Stili per partite / accordion squadre === */
-    .match-green { background-color: #6cc06c; }   /* vinta 2-0 */
-    .match-red { background-color: #ff6b6b; }     /* persa 0-2 */
-    .match-orange { background-color: #ffa34c; }  /* persa 1-2 */
-    .match-yellow { background-color: #fff26b; }  /* vinta 2-1 */
-
-    .match-item {
-        padding: 6px 10px;
-        margin: 4px 0;
-        border-radius: 6px;
-        font-size: 14px;
+        background: #eef2ff;
         font-weight: 600;
+        color: #111827;
+    }
+    tr:nth-child(even) td {
+        background: #f9fafb;
+    }
+    tr:last-child td {
+        border-bottom: none;
     }
 
+    .played { background: #dcfce7 !important; }
+    .top2 { background: #e0ecff !important; }
+
+    /* === ACCORDION MODERNO PER LE PARTITE === */
     .accordion {
-        margin-top: 10px;
+        grid-area: accordion;
         width: 100%;
+        margin-top: 4px;
     }
-
     .accordion-button {
         cursor: pointer;
-        background: #e7e7e7;
+        background: #eef1f6;
         border: none;
         width: 100%;
-        padding: 8px;
-        border-radius: 5px;
-        text-align: left;
-        font-size: 15px;
-        font-weight: bold;
+        padding: 9px 12px;
+        border-radius: 10px;
+        font-size: 14px;
+        font-weight: 600;
+        text-align: center;
+        color: #111827;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 6px;
+        transition: background 0.2s, transform 0.1s;
+    }
+    .accordion-button::after {
+        content: "▾";
+        font-size: 12px;
+        transition: transform 0.2s;
+    }
+    .accordion-button.open::after {
+        transform: rotate(180deg);
+    }
+    .accordion-button:hover {
+        background: #dde2ea;
+    }
+    .accordion-button:active {
+        transform: translateY(1px);
     }
 
     .accordion-content {
         display: none;
-        margin-top: 6px;
+        margin-top: 10px;
     }
+
+    .match-item {
+        padding: 8px 10px;
+        margin: 4px 0;
+        border-radius: 10px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #111827;
+        box-shadow: 0 2px 6px rgba(15, 23, 42, 0.18);
+    }
+
+    /* === COLORI PARTITE === */
+    .match-green  { background-color: #bbf7d0; }  /* vinta 2-0 */
+    .match-red    { background-color: #fecaca; }  /* persa 0-2 */
+    .match-yellow { background-color: #fef3c7; }  /* vinta 2-1 */
+    .match-orange { background-color: #fed7aa; }  /* persa 1-2 */
 </style>
 
 <script>
@@ -135,7 +207,7 @@ function processCSV(txt){
   });
   aggiornaCalendarioDaCSV(map);
   aggiornaClassificheDaCSV(map);
-  aggiornaAccordionSquadre(map);   // <<--- nuovo
+  aggiornaAccordionSquadre(map);
 }
 
 // Aggiorna calendario: scrive risultato CSV e colora riga se giocata
@@ -260,12 +332,14 @@ function aggiornaClassificheDaCSV(map){
   fill("Girone B", tabB);
 }
 
-// === NUOVO: accordion con le partite per ogni squadra ===
+// === Accordion con le partite per ogni squadra ===
 function aggiornaAccordionSquadre(map){
   const partite = Object.values(map);
 
   document.querySelectorAll(".team-card").forEach(card => {
-    const squadra = card.querySelector(".team-name").textContent.trim();
+    const squadraEl = card.querySelector(".team-name");
+    if(!squadraEl) return;
+    const squadra = squadraEl.textContent.trim();
 
     // Tolgo eventuale accordion precedente (ricarichi il CSV ogni 60s)
     const oldAcc = card.querySelector(".accordion");
@@ -321,7 +395,9 @@ function aggiornaAccordionSquadre(map){
     card.appendChild(accordion);
 
     btn.addEventListener("click", () => {
-      content.style.display = (content.style.display === "block" ? "none" : "block");
+      const visible = content.style.display === "block";
+      content.style.display = visible ? "none" : "block";
+      btn.classList.toggle("open", !visible);
     });
   });
 }
@@ -372,6 +448,7 @@ document.addEventListener("DOMContentLoaded", ()=>{
 <table>
 <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Finale</td><td>Vincente Semifinale 1</td><td>Vincente Semifinale 2</td></tr></table></div>
 <div class="footer">
+Torneo di Calcio Balilla - Powered by HTML &amp; JavaScript
 </div>
 </body>
 </html>
