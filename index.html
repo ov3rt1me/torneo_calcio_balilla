@@ -227,6 +227,122 @@ document.addEventListener("DOMContentLoaded", ()=>{
   setInterval(caricaCSV, 60000);
 });
 </script>
+
+<!-- ====== STILI PARTITE / ACCORDION ====== -->
+<style>
+    .match-green { background-color: #6cc06c; }   /* vinta 2-0 */
+    .match-red { background-color: #ff6b6b; }     /* persa 0-2 */
+    .match-orange { background-color: #ffa34c; }  /* persa 1-2 */
+    .match-yellow { background-color: #fff26b; }  /* vinta 2-1 */
+
+    .match-item {
+        padding: 6px 10px;
+        margin: 4px 0;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+    .accordion {
+        margin-top: 10px;
+    }
+
+    .accordion-button {
+        cursor: pointer;
+        background: #e7e7e7;
+        border: none;
+        width: 100%;
+        padding: 8px;
+        border-radius: 5px;
+        text-align: left;
+        font-size: 15px;
+        font-weight: bold;
+    }
+
+    .accordion-content {
+        display: none;
+        margin-top: 6px;
+    }
+</style>
+
+<!-- ====== SCRIPT LETTURA CSV + GENERAZIONE ACCORDION ====== -->
+<script>
+async function caricaPartite() {
+
+    // Carico il CSV
+    const response = await fetch("result.csv");
+    const text = await response.text();
+
+    // Leggo le righe (salto l'intestazione)
+    const righe = text.trim().split("\n").slice(1);
+
+    // Mappo le partite
+    const partite = righe.map(r => {
+        const [s1, s2, g1, g2, esito, testo, agg] = r.split(";");
+        return { s1, s2, g1, g2, esito, testo, agg };
+    });
+
+    // Per ogni team-card genero l'accordion
+    document.querySelectorAll(".team-card").forEach(card => {
+
+        const squadra = card.querySelector(".team-name").textContent.trim();
+
+        // Partite della squadra
+        const elenco = partite.filter(p => p.s1 === squadra || p.s2 === squadra);
+
+        // Se la squadra non ha ancora partite, non creo l'accordion
+        if (elenco.length === 0) return;
+
+        // Creo l'accordion
+        const accordion = document.createElement("div");
+        accordion.className = "accordion";
+
+        const btn = document.createElement("button");
+        btn.className = "accordion-button";
+        btn.textContent = "Partite giocate";
+        accordion.appendChild(btn);
+
+        const content = document.createElement("div");
+        content.className = "accordion-content";
+
+        // Riempio l'accordion con le partite
+        elenco.forEach(p => {
+            const item = document.createElement("div");
+            item.className = "match-item";
+
+            // Colori in base all'aggregato
+            let colore = "";
+            switch (p.agg) {
+                case "2-0": colore = "match-green"; break;
+                case "0-2": colore = "match-red"; break;
+                case "2-1": colore = "match-yellow"; break;
+                case "1-2": colore = "match-orange"; break;
+            }
+            item.classList.add(colore);
+
+            // Nome avversario
+            const avversario = (p.s1 === squadra ? p.s2 : p.s1);
+
+            // Testo partita
+            item.textContent = `${p.s1} ${p.g1}-${p.g2} ${p.s2} (Agg: ${p.agg})`;
+
+            content.appendChild(item);
+        });
+
+        accordion.appendChild(content);
+        card.appendChild(accordion);
+
+        // Click per aprire/chiudere
+        btn.addEventListener("click", () => {
+            content.style.display = (content.style.display === "block" ? "none" : "block");
+        });
+    });
+}
+
+// Avvio lettura CSV alla fine della pagina
+window.onload = caricaPartite;
+</script>
+
 </head>
 <body>
 <h1>Torneo di Calcio Balilla</h1>
