@@ -102,6 +102,9 @@
         font-weight: 600;
         color: #111827;
     }
+    .calendar-icon {
+        font-size: 18px;
+    }
     tr:nth-child(even) td {
         background: #f9fafb;
     }
@@ -109,8 +112,11 @@
         border-bottom: none;
     }
 
-    .played { background: #dcfce7 !important; }
-    .top2 { background: #e0ecff !important; }
+    .played { }
+    .top2 td:first-child {
+        border-left: 4px solid #3b82f6;
+        font-weight: 700;
+    }
 
     /* === ACCORDION MODERNO PER LE PARTITE === */
     .accordion {
@@ -210,17 +216,22 @@ function processCSV(txt){
   aggiornaAccordionSquadre(map);
 }
 
-// Aggiorna calendario: scrive risultato CSV e colora riga se giocata
+// Aggiorna calendario: scrive risultato CSV e aggiunge icona stato (⚽ / ⏳)
 function aggiornaCalendarioDaCSV(map){
   const tab = document.querySelector("#calendario table");
   if(!tab) return;
 
   const head = tab.querySelector("tr");
   if(head && !head.querySelector(".risCsv")){
-    const th = document.createElement("th");
-    th.className = "risCsv";
-    th.textContent = "Risultato (CSV)";
-    head.appendChild(th);
+    const thRis = document.createElement("th");
+    thRis.className = "risCsv";
+    thRis.textContent = "Risultato (CSV)";
+    head.appendChild(thRis);
+
+    const thIcon = document.createElement("th");
+    thIcon.className = "statoCol";
+    thIcon.textContent = "Stato";
+    head.appendChild(thIcon);
   }
 
   tab.querySelectorAll("tr").forEach((row,i)=>{
@@ -232,21 +243,28 @@ function aggiornaCalendarioDaCSV(map){
     const s2 = cells[2].textContent.trim();
     const key = s1 + "|" + s2;
 
-    let td = row.querySelector(".risCsvCell");
-    if(!td){
-      td = document.createElement("td");
-      td.className = "risCsvCell";
-      row.appendChild(td);
+    let tdRis = row.querySelector(".risCsvCell");
+    if(!tdRis){
+      tdRis = document.createElement("td");
+      tdRis.className = "risCsvCell";
+      row.appendChild(tdRis);
+    }
+
+    let tdIcon = row.querySelector(".statoCell");
+    if(!tdIcon){
+      tdIcon = document.createElement("td");
+      tdIcon.className = "statoCell calendar-icon";
+      row.appendChild(tdIcon);
     }
 
     const d = map[key];
     const giocata = d && d.agg && d.agg.includes("-");
     if(giocata){
-      td.textContent = d.txt;
-      row.classList.add("played");
+      tdRis.textContent = d.txt;
+      tdIcon.textContent = "⚽";
     }else{
-      td.textContent = "";
-      row.classList.remove("played");
+      tdRis.textContent = "";
+      tdIcon.textContent = "⏳";
     }
   });
 }
@@ -254,7 +272,7 @@ function aggiornaCalendarioDaCSV(map){
 // Calcola le classifiche dei Gironi A e B
 function aggiornaClassificheDaCSV(map){
   const cls = {};
-  const init = t => { if(!cls[t]) cls[t] = { punti:0, gf:0, gs:0 }; };
+  const init = t => { if(!cls[t]) cls[t] = { punti:0, pg:0, gf:0, gs:0 }; };
 
   Object.values(map).forEach(g=>{
     init(g.s1);
@@ -265,6 +283,12 @@ function aggiornaClassificheDaCSV(map){
     cls[g.s1].gs += g.gs;
     cls[g.s2].gf += g.gs;
     cls[g.s2].gs += g.gf;
+
+    const giocata = g.agg && g.agg.includes("-");
+    if(giocata){
+      cls[g.s1].pg += 1;
+      cls[g.s2].pg += 1;
+    }
 
     // punti in base all'Aggregato
     if(g.agg){
@@ -302,8 +326,8 @@ function aggiornaClassificheDaCSV(map){
 
   const tabA = document.getElementById("tabClassificaA");
   const tabB = document.getElementById("tabClassificaB");
-  if(tabA) tabA.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
-  if(tabB) tabB.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+  if(tabA) tabA.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>PG</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
+  if(tabB) tabB.innerHTML = '<tr><th>Squadra</th><th>Punti</th><th>PG</th><th>GF</th><th>GS</th><th>Diff</th></tr>';
 
   function fill(gName, tab){
     if(!tab || !gir[gName]) return;
@@ -323,7 +347,7 @@ function aggiornaClassificheDaCSV(map){
       const s = cls[t];
       const tr = document.createElement("tr");
       if(idx < 2) tr.classList.add("top2");
-      tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
+      tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.pg+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
       tab.appendChild(tr);
     });
   }
