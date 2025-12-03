@@ -117,6 +117,10 @@
         border-left: 4px solid #3b82f6;
         font-weight: 700;
     }
+    .last1 td:first-child {
+        border-left: 4px solid #f63b51;
+        font-weight: 700;
+    }
 
     /* === ACCORDION MODERNO PER LE PARTITE === */
     .accordion {
@@ -347,6 +351,7 @@ function aggiornaClassificheDaCSV(map){
       const s = cls[t];
       const tr = document.createElement("tr");
       if(idx < 2) tr.classList.add("top2");
+      if(idx >= 7) tr.classList.add("last1");
       tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.pg+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
       tab.appendChild(tr);
     });
