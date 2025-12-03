@@ -1,7 +1,7 @@
 Squadra1;Squadra2;Gol1;Gol2;Esito;RisultatoText;Aggregato
 Torino;Albinoleffe;3;12;B;0-6 3-6;0-2
 Sassuolo;Albinoleffe;9;12;B;4-6 5-6;0-2
-Salernitana;Albinoleffe;0;0;;n.d.;
+Salernitana;Albinoleffe;1;12;B;1-6 0-6;0-2
 Piacenza;Mantova;12;9;A;6-4 6-5;2-0
 Salernitana;Ascoli;0;0;;n.d.;
 Salernitana;Mantova;12;5;A;6-4 6-1;2-0
@@ -9,10 +9,10 @@ Piacenza;Sassuolo;0;0;;n.d.;
 Cittadella;Torino;0;0;;n.d.;
 Sassuolo;Mantova;0;0;;n.d.;
 Piacenza;Albinoleffe;0;0;;n.d.;
-Sassuolo;Cittadella;0;0;;n.d.;
+Sassuolo;Cittadella;6;12;B;5-6 1-6;B
 Piacenza;Ascoli;0;0;;n.d.;
 Sassuolo;Salernitana;0;0;;n.d.;
-Cittadella;Salernitana;12;1;A;6-1 6-0;2-0
+Cittadella;Salernitana;12;6;A;6-4 6-2;2-0
 Albinoleffe;Mantova;0;0;;n.d.;
 Sassuolo;Ascoli;4;12;B;2-6 2-6;0-2
 Cittadella;Albinoleffe;5;12;B;2-6 3-6;0-2
