@@ -351,7 +351,7 @@ function aggiornaClassificheDaCSV(map){
       const s = cls[t];
       const tr = document.createElement("tr");
       if(idx < 2) tr.classList.add("top2");
-      if(idx >= 7) tr.classList.add("last1");
+      if(idx > 6) tr.classList.add("last1");
       tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.pg+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
       tab.appendChild(tr);
     });
