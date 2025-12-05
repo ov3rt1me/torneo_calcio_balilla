@@ -27,6 +27,104 @@
         margin-top: 20px;
         margin-bottom: 10px;
     }
+
+    /* === DASHBOARD AVANZAMENTO PARTITE === */
+    .progress-container {
+        margin: 10px auto 24px;
+        max-width: 600px;
+        background: #ffffff;
+        padding: 16px 20px;
+        border-radius: 16px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+    }
+    .progress-title {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 10px;
+        text-align: center;
+    }
+    .progress-bar {
+        width: 100%;
+        height: 22px;
+        background: #e5e7eb;
+        border-radius: 12px;
+        overflow: hidden;
+        position: relative;
+    }
+    .progress-fill {
+        height: 100%;
+        width: 0%;
+        background: linear-gradient(90deg, #3b82f6, #06b6d4);
+        border-radius: 12px;
+        transition: width 1s ease;
+    }
+    .progress-text {
+        text-align: center;
+        margin-top: 8px;
+        font-weight: 600;
+    }
+
+    .donut-wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        justify-content: center;
+        margin-top: 10px;
+    }
+    .donut-card {
+        background: #ffffff;
+        border-radius: 16px;
+        padding: 16px;
+        width: 260px;
+        box-shadow: 0 4px 12px rgba(15, 23, 42, 0.10);
+    }
+    .donut-title {
+        text-align: center;
+        font-weight: 600;
+        margin-bottom: 8px;
+    }
+    .donut {
+        position: relative;
+        width: 140px;
+        height: 140px;
+        margin: 0 auto;
+    }
+    .donut svg {
+        width: 140px;
+        height: 140px;
+        transform: rotate(-90deg);
+    }
+    .donut-bg {
+        fill: none;
+        stroke: #e5e7eb;
+        stroke-width: 10;
+    }
+    .donut-fg {
+        fill: none;
+        stroke: #3b82f6;
+        stroke-width: 10;
+        stroke-linecap: round;
+        stroke-dasharray: 283;
+        stroke-dashoffset: 283;
+        transition: stroke-dashoffset 1s ease;
+    }
+    .donut-center {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+    }
+    .donut-center div:first-child {
+        font-size: 20px;
+        font-weight: 700;
+    }
+    .donut-sub {
+        font-size: 12px;
+        color: #4b5563;
+        margin-top: 2px;
+    }
     .section {
         margin-top: 30px;
     }
@@ -117,8 +215,11 @@
         border-left: 4px solid #3b82f6;
         font-weight: 700;
     }
+    .last1 td {
+        background: #fee2e2 !important;
+    }
     .last1 td:first-child {
-        border-left: 4px solid #f63b51;
+        border-left: 4px solid #f97373;
         font-weight: 700;
     }
 
@@ -218,6 +319,7 @@ function processCSV(txt){
   aggiornaCalendarioDaCSV(map);
   aggiornaClassificheDaCSV(map);
   aggiornaAccordionSquadre(map);
+  aggiornaDashboardPartite(map);
 }
 
 // Aggiorna calendario: scrive risultato CSV e aggiunge icona stato (⚽ / ⏳)
@@ -347,11 +449,13 @@ function aggiornaClassificheDaCSV(map){
       return cls[b].gf - cls[a].gf;
     });
 
+    const len = squadre.length;
     squadre.forEach((t,idx)=>{
       const s = cls[t];
       const tr = document.createElement("tr");
       if(idx < 2) tr.classList.add("top2");
-      if(idx > 6) tr.classList.add("last1");
+      if(gName === "Girone A" && idx >= len - 2) tr.classList.add("last1");
+      if(gName === "Girone B" && idx === len - 1) tr.classList.add("last1");
       tr.innerHTML = '<td>'+t+'</td><td>'+s.punti+'</td><td>'+s.pg+'</td><td>'+s.gf+'</td><td>'+s.gs+'</td><td>'+(s.gf-s.gs)+'</td>';
       tab.appendChild(tr);
     });
@@ -359,6 +463,8 @@ function aggiornaClassificheDaCSV(map){
 
   fill("Girone A", tabA);
   fill("Girone B", tabB);
+
+  aggiornaMiniTorneo();
 }
 
 // === Accordion con le partite per ogni squadra ===
@@ -431,6 +537,92 @@ function aggiornaAccordionSquadre(map){
   });
 }
 
+
+// === Calcolo stato partite per progress bar e donut ===
+function calcolaStatoPartite(map){
+  const tab = document.querySelector("#calendario table");
+  const result = { totale: 0, giocate: 0, gironi: {} };
+  if(!tab) return result;
+
+  tab.querySelectorAll("tr").forEach((row,i)=>{
+    if(i===0) return;
+    const cells = row.querySelectorAll("td");
+    if(cells.length < 3) return;
+    const girone = cells[0].textContent.trim();
+    const s1 = cells[1].textContent.trim();
+    const s2 = cells[2].textContent.trim();
+    const key = s1 + "|" + s2;
+    const d = map[key];
+
+    if(!result.gironi[girone]) result.gironi[girone] = { totale: 0, giocate: 0 };
+
+    result.totale++;
+    result.gironi[girone].totale++;
+
+    const giocata = d && d.agg && d.agg.includes("-");
+    if(giocata){
+      result.giocate++;
+      result.gironi[girone].giocate++;
+    }
+  });
+  return result;
+}
+
+function aggiornaProgressBar(stato){
+  const fill = document.getElementById("progressFill");
+  const text = document.getElementById("progressText");
+  if(!fill || !text || !stato) return;
+  const tot = stato.totale || 0;
+  const giocate = stato.giocate || 0;
+  const perc = tot > 0 ? Math.round(giocate * 100 / tot) : 0;
+  fill.style.width = perc + "%";
+  text.textContent = giocate + " partite giocate su " + tot + " (" + perc + "%)";
+}
+
+function aggiornaDonut(letter, dati){
+  const circle = document.getElementById("donut" + letter + "-circle");
+  const percEl = document.getElementById("donut" + letter + "-perc");
+  const textEl = document.getElementById("donut" + letter + "-text");
+  if(!circle || !percEl || !textEl || !dati) return;
+  const tot = dati.totale || 0;
+  const giocate = dati.giocate || 0;
+  const perc = tot > 0 ? Math.round(giocate * 100 / tot) : 0;
+  const CIRC = 283;
+  circle.style.strokeDasharray = CIRC;
+  circle.style.strokeDashoffset = CIRC * (1 - perc / 100);
+  percEl.textContent = perc + "%";
+  textEl.textContent = giocate + " / " + tot + " giocate";
+}
+
+function aggiornaDashboardPartite(map){
+  const stato = calcolaStatoPartite(map);
+  aggiornaProgressBar(stato);
+  if(stato.gironi["Girone A"]) aggiornaDonut("A", stato.gironi["Girone A"]);
+  if(stato.gironi["Girone B"]) aggiornaDonut("B", stato.gironi["Girone B"]);
+}
+
+// Mini torneo per l'ultimo posto (ultimi 2 Girone A, ultimo Girone B)
+function aggiornaMiniTorneo(){
+  const tabA = document.getElementById("tabClassificaA");
+  const tabB = document.getElementById("tabClassificaB");
+  if(!tabA || !tabB) return;
+
+  const rowsA = tabA.querySelectorAll("tr");
+  const rowsB = tabB.querySelectorAll("tr");
+  if(rowsA.length < 3 || rowsB.length < 2) return; // header + almeno 2-3 squadre
+
+  const lastA = rowsA[rowsA.length - 1].children[0].textContent;
+  const penultA = rowsA[rowsA.length - 2].children[0].textContent;
+  const lastB = rowsB[rowsB.length - 1].children[0].textContent;
+
+  const m1s1 = document.getElementById("mt-sq1-1");
+  const m1s2 = document.getElementById("mt-sq1-2");
+  const m2s1 = document.getElementById("mt-sq2-1");
+
+  if(m1s1) m1s1.textContent = penultA;
+  if(m1s2) m1s2.textContent = lastB;
+  if(m2s1) m2s1.textContent = lastA;
+}
 document.addEventListener("DOMContentLoaded", ()=>{
   caricaCSV();
   setInterval(caricaCSV, 60000);
@@ -439,6 +631,43 @@ document.addEventListener("DOMContentLoaded", ()=>{
 </head>
 <body>
 <h1>Torneo di Calcio Balilla</h1>
+<div class="section" id="dashboard">
+    <div class="progress-container">
+        <div class="progress-title">Avanzamento complessivo partite</div>
+        <div class="progress-bar">
+            <div class="progress-fill" id="progressFill"></div>
+        </div>
+        <div class="progress-text" id="progressText">Caricamento...</div>
+    </div>
+    <div class="donut-wrapper">
+        <div class="donut-card">
+            <div class="donut-title">Girone A</div>
+            <div class="donut">
+                <svg>
+                    <circle class="donut-bg" cx="70" cy="70" r="45"></circle>
+                    <circle id="donutA-circle" class="donut-fg" cx="70" cy="70" r="45"></circle>
+                </svg>
+                <div class="donut-center">
+                    <div id="donutA-perc">0%</div>
+                    <div id="donutA-text" class="donut-sub">0 / 0 giocate</div>
+                </div>
+            </div>
+        </div>
+        <div class="donut-card">
+            <div class="donut-title">Girone B</div>
+            <div class="donut">
+                <svg>
+                    <circle class="donut-bg" cx="70" cy="70" r="45"></circle>
+                    <circle id="donutB-circle" class="donut-fg" cx="70" cy="70" r="45"></circle>
+                </svg>
+                <div class="donut-center">
+                    <div id="donutB-perc">0%</div>
+                    <div id="donutB-text" class="donut-sub">0 / 0 giocate</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 <div class="section" id="gironi">
 <h2>Gironi</h2><h3>Girone A (8 squadre)</h3>
 <div class="girone-grid"><div class="team-card"><img alt="Logo Piacenza" src="loghi\piacenza.png"/><div><div class="team-name">Piacenza</div><div class="team-players">Attacco: Giada Illuzzi<br/>Difesa: Alessandra Mion</div></div></div><div class="team-card"><img alt="Logo Sassuolo" src="loghi\sassuolo.png"/><div><div class="team-name">Sassuolo</div><div class="team-players">Attacco: Irene Grisi<br/>Difesa: Riccardo Gavioli</div></div></div><div class="team-card"><img alt="Logo Cittadella" src="loghi\cittadella.png"/><div><div class="team-name">Cittadella</div><div class="team-players">Attacco: Matteo Vicentini<br/>Difesa: Paolo Maranini</div></div></div><div class="team-card"><img alt="Logo Salernitana" src="loghi\salernitana.png"/><div><div class="team-name">Salernitana</div><div class="team-players">Attacco: Marco Bonato<br/>Difesa: Matteo Mazzola</div></div></div><div class="team-card"><img alt="Logo Ascoli" src="loghi\ascoli.png"/><div><div class="team-name">Ascoli</div><div class="team-players">Attacco: Carlo Parmegiani<br/>Difesa: Federico Romani</div></div></div><div class="team-card"><img alt="Logo Torino" src="loghi\torino.png"/><div><div class="team-name">Torino</div><div class="team-players">Attacco: Arianna Taccon<br/>Difesa: silvia mariotto</div></div></div><div class="team-card"><img alt="Logo Albinoleffe" src="loghi\albinoleffe.png"/><div><div class="team-name">Albinoleffe</div><div class="team-players">Attacco: Luca Centurioni<br/>Difesa: Simonati Giulia</div></div></div><div class="team-card"><img alt="Logo Mantova" src="loghi\mantova.png"/><div><div class="team-name">Mantova</div><div class="team-players">Attacco: Gianmarco Barbieri<br/>Difesa: Zeno Varalta</div></div></div></div><h3>Girone B (7 squadre)</h3>
@@ -463,13 +692,23 @@ document.addEventListener("DOMContentLoaded", ()=>{
 </ul>
 </div>
 <div class="section" id="classificaA"><h2>Classifica Girone A</h2>
-<table id="tabClassificaA"><tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr></table>
+<table id="tabClassificaA"><tr><th>Squadra</th><th>Punti</th><th>PG</th><th>GF</th><th>GS</th><th>Diff</th></tr></table>
 </div>
 <div class="section" id="classificaB"><h2>Classifica Girone B</h2>
-<table id="tabClassificaB"><tr><th>Squadra</th><th>Punti</th><th>GF</th><th>GS</th><th>Diff</th></tr></table>
+<table id="tabClassificaB"><tr><th>Squadra</th><th>Punti</th><th>PG</th><th>GF</th><th>GS</th><th>Diff</th></tr></table>
 </div>
 <div class="section" id="fasi_finali">
 <h2>Semifinali &amp; Finale</h2>
+<div class="section" id="mini_torneo">
+<h2>Mini torneo per l'ultimo posto</h2>
+<table id="tabMiniTorneo">
+<tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr>
+<tr><td>Playout 1</td><td id="mt-sq1-1">7° Girone A</td><td id="mt-sq1-2">7° Girone B</td></tr>
+<tr><td>Playout 2</td><td id="mt-sq2-1">8° Girone A</td><td id="mt-sq2-2">Perdente Playout 1</td></tr>
+<tr><td>Finale Ultimo Posto</td><td id="mt-sq3-1">Perdente Playout 2</td><td id="mt-sq3-2">Perdente Playout 1</td></tr>
+</table>
+</div>
+
 <h3>Semifinali</h3>
 <table>
 <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Semifinale 1</td><td>Prima Girone A</td><td>Seconda Girone B</td></tr><tr><td>Semifinale 2</td><td>Prima Girone B</td><td>Seconda Girone A</td></tr> </table>
