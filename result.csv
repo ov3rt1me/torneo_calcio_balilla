@@ -18,7 +18,7 @@ Sassuolo;Ascoli;4;12;B;2-6 2-6;0-2
 Cittadella;Albinoleffe;5;12;B;2-6 3-6;0-2
 Cittadella;Ascoli;0;0;;n.d.;
 Piacenza;Salernitana;14;18;B;6-5 3-6 5-7;1-2
-Sassuolo;Torino;0;0;;n.d.;
+Sassuolo;Torino;12;5;A;6-1 6-4;2-0
 Torino;Mantova;0;0;;n.d.;
 Ascoli;Torino;12;4;A;6-2 6-2;2-0
 Piacenza;Torino;14;10;A;6-0 4-6 6-4;2-1
@@ -29,7 +29,7 @@ Cittadella;Mantova;0;0;;n.d.;
 Salernitana;Torino;0;0;;n.d.;
 Modena;Frosinone;15;19;B;6-4 2-6 7-9;1-2
 Padova;Frosinone;0;0;;n.d.;
-Modena;Crotone;0;0;;n.d.;
+Modena;Crotone;7;12;B;3-6 4-6;0-2
 Ancona;Frosinone;0;0;;n.d.;
 Cesena;Frosinone;0;0;;n.d.;
 Padova;Crotone;0;0;;n.d.;
@@ -37,7 +37,7 @@ Padova;Cesena;12;16;B;4-6 6-4 2-6;1-2
 Ancona;Cesena;7;12;B;2-6 5-6;0-2
 Padova;Ancona;0;0;;n.d.;
 Crotone;Cesena;16;13;A;6-3 4-6 6-4;2-1
-Brescia;Frosinone;0;0;;n.d.;
+Brescia;Frosinone;14;14;B;5-6 6-2 3-6;1-2
 Brescia;Ancona;0;0;;n.d.;
 Brescia;Crotone;2;12;B;0-6 2-6;0-2
 Ancona;Modena;12;3;A;6-0 6-3;2-0
@@ -46,5 +46,5 @@ Brescia;Cesena;12;17;B;2-6 6-5 4-6;1-2
 Brescia;Modena;3;12;B;1-6 2-6;0-2
 Brescia;Padova;;;;n.d.;
 Cesena;Modena;12;4;A;6-2 6-2;2-0
-Crotone;Frosinone;;;;n.d.;
+Crotone;Frosinone;12;5;A;6-2 6-3;2-0
 Modena;Padova;;;;n.d.;
