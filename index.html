@@ -320,6 +320,7 @@ function processCSV(txt){
   aggiornaClassificheDaCSV(map);
   aggiornaAccordionSquadre(map);
   aggiornaDashboardPartite(map);
+  aggiornaSemifinaliEFinale();
 }
 
 // Aggiorna calendario: scrive risultato CSV e aggiunge icona stato (⚽ / ⏳)
@@ -623,6 +624,36 @@ function aggiornaMiniTorneo(){
   if(m1s2) m1s2.textContent = lastB;
   if(m2s1) m2s1.textContent = lastA;
 }
+
+function aggiornaSemifinaliEFinale() {
+    const tabA = document.getElementById("tabClassificaA");
+    const tabB = document.getElementById("tabClassificaB");
+
+    if (!tabA || !tabB) return;
+
+    const rowsA = tabA.querySelectorAll("tr");
+    const rowsB = tabB.querySelectorAll("tr");
+
+    // Recupero prime 2 del Girone A
+    const firstA  = rowsA[1]?.children[0]?.textContent || "";
+    const secondA = rowsA[2]?.children[0]?.textContent || "";
+
+    // Recupero prime 2 del Girone B
+    const firstB  = rowsB[1]?.children[0]?.textContent || "";
+    const secondB = rowsB[2]?.children[0]?.textContent || "";
+
+    // SEMIFINALI
+    document.getElementById("sf1-sq1").textContent = firstA;
+    document.getElementById("sf1-sq2").textContent = secondB;
+
+    document.getElementById("sf2-sq1").textContent = firstB;
+    document.getElementById("sf2-sq2").textContent = secondA;
+
+    // FINALE (placeholder automatico)
+    document.getElementById("fn-sq1").textContent = "Vincente Semifinale 1";
+    document.getElementById("fn-sq2").textContent = "Vincente Semifinale 2";
+}
+
 document.addEventListener("DOMContentLoaded", ()=>{
   caricaCSV();
   setInterval(caricaCSV, 60000);
@@ -709,12 +740,34 @@ document.addEventListener("DOMContentLoaded", ()=>{
 </table>
 </div>
 
-<h3>Semifinali</h3>
-<table>
-<tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Semifinale 1</td><td>Prima Girone A</td><td>Seconda Girone B</td></tr><tr><td>Semifinale 2</td><td>Prima Girone B</td><td>Seconda Girone A</td></tr> </table>
-<h3>Finale</h3>
-<table>
-<tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr><tr><td>Finale</td><td>Vincente Semifinale 1</td><td>Vincente Semifinale 2</td></tr></table></div>
+<div class="section" id="fasi_finali">
+    <h2>Semifinali & Finale</h2>
+
+    <table id="tabSemifinali">
+        <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr>
+        <tr>
+            <td>Semifinale 1</td>
+            <td id="sf1-sq1">Prima Girone A</td>
+            <td id="sf1-sq2">Seconda Girone B</td>
+        </tr>
+        <tr>
+            <td>Semifinale 2</td>
+            <td id="sf2-sq1">Prima Girone B</td>
+            <td id="sf2-sq2">Seconda Girone A</td>
+        </tr>
+    </table>
+
+    <h3>Finale</h3>
+    <table id="tabFinale">
+        <tr><th>Match</th><th>Squadra 1</th><th>Squadra 2</th></tr>
+        <tr>
+            <td>Finale</td>
+            <td id="fn-sq1">Vincente Semifinale 1</td>
+            <td id="fn-sq2">Vincente Semifinale 2</td>
+        </tr>
+    </table>
+</div>
+
 <div class="footer">
 Torneo di Calcio Balilla - Powered by HTML &amp; JavaScript
 </div>
